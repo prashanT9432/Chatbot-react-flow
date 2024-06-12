@@ -1,6 +1,5 @@
 import React from "react";
 import { Panel } from "reactflow";
-
 import "./dndFlow.css";
 export default ({ nodeName, setNodeName, onSave }) => {
   const onDragStart = (event, nodeType) => {
@@ -10,23 +9,20 @@ export default ({ nodeName, setNodeName, onSave }) => {
 
   return (
     <aside>
-      <Panel position="top-right">
-        <button className="btn" onClick={onSave}>
-          save changes
-        </button>
-      </Panel>
+      <div className="panel">
 
       <div
         className="dndnode"
         onDragStart={(event) => onDragStart(event, "default")}
         draggable
-      >
+      >&nbsp;&nbsp;
         <img
           src="src\assets\message-icon-512x463-tqzmxrt7.png"
           style={{ height: "20px" }}
-        ></img>{" "}
-        &nbsp;&nbsp; <br />
-        <span>Message</span>
+        ></img>
+        &nbsp;&nbsp;&nbsp;&nbsp;<br />
+        <span>Message node</span>
+      </div>
       </div>
       <hr></hr>
       <br></br>
@@ -38,9 +34,14 @@ export default ({ nodeName, setNodeName, onSave }) => {
           type="textarea"
           value={nodeName}
           onChange={(e) => setNodeName(e.target.value)}
-          style={{ width: "100%", height: "35px", borderRadius: "4px" }}
         ></textarea>
-      </div>
+      </div><br/>
+           <Panel>
+        <button className="btn" onClick={onSave}>
+          save changes
+        </button>
+
+      </Panel>
       <hr />
     </aside>
   );

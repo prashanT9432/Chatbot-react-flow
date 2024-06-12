@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -6,23 +6,27 @@ import ReactFlow, {
   useEdgesState,
   Controls,
   Background,
-} from "reactflow";
-import "reactflow/dist/style.css";
-import Sidebar from "./SideBar";
-import Nav from "./nav";
-import "./dndFlow.css";
+  MarkerType,
+  } from 'reactflow';
+import 'reactflow/dist/style.css';
+import Sidebar from './SideBar';
+import Nav from './nav';
+import './dndFlow.css'
+
 const initialNodes = [
   {
-    id: "1",
-    type: "default",
-    data: { label: "test message 1" },
+    id: '1',
+    type: 'input',
+    data: { label: 'test message 1' },
     position: { x: 250, y: 5 },
-    sourcePosition: "right",
-    targetPosition: "left",
+    sourcePosition: 'right',
+    targetPosition: 'left',
+
   },
 ];
 
 let id = 0;
+// generating unique IDs for nodes
 const getId = () => `dndnode_${id++}`;
 
 const DnDFlow = () => {
@@ -30,15 +34,15 @@ const DnDFlow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
-  const [rfInstance, setRfInstance] = useState(null);
-  const [nodeName, setNodeName] = useState("");
-  const [nodeBg, setNodeBg] = useState("#eee");
-  const [nodeHidden, setNodeHidden] = useState(false);
-  const [id, setId] = useState();
+  const [nodeName, setNodeName] = useState('');
+  const [ids, setId] = useState()
+
+
   useEffect(() => {
     setNodes((nds) =>
       nds.map((node) => {
-        if (node.id === id) {
+        if (node.id === ids) {
+ 
           node.data = {
             ...node.data,
             label: nodeName,
@@ -50,54 +54,73 @@ const DnDFlow = () => {
     );
   }, [nodeName, setNodes]);
 
-  useEffect(() => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === id) {
-          node.hidden = nodeHidden;
-        }
 
-        return node;
-      })
-    );
-    setEdges((eds) =>
-      eds.map((edge) => {
-        if (edge.id === "e1-2") {
-          edge.hidden = nodeHidden;
-        }
 
-        return edge;
-      })
+
+   // Key for local storage
+   const KeyId = "key123";
+  // Check for empty target handles
+  const checkEmptyTargetHandles = () => {
+    let emptyTargetHandles = 0;
+    edges.forEach((edge) => {
+      if (!edge.targetHandle) {
+        emptyTargetHandles++;
+      }
+    });
+    return emptyTargetHandles;
+  };
+  // Check if any node is unconnected
+  const isNodeUnconnected = useCallback(() => {
+    let unconnectedNodes = nodes.filter(
+      (node) =>
+        !edges.find(
+          (edge) => edge.source === node.id || edge.target === node.id
+        )
     );
-  }, [nodeHidden, setNodes, setEdges]);
+
+    return unconnectedNodes.length > 0;
+  }, [nodes, edges]);
+
+  // Save flow to local storage
+  const onSave = useCallback(() => {
+    if (reactFlowInstance) {
+      const emptyTargetHandles = checkEmptyTargetHandles();
+
+      if (nodes.length > 1 && (emptyTargetHandles > 1 || isNodeUnconnected())) {
+        alert(
+          "Error: Nodes can not have empty target handles."
+        );
+      } else {
+        const flow = reactFlowInstance.toObject();
+        localStorage.setItem(KeyId, JSON.stringify(flow));
+        alert("Saved successfully!"); 
+      }
+    }
+  }, [reactFlowInstance, nodes, isNodeUnconnected]);
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
-    []
+    [setEdges],
   );
-  const onSave = useCallback(() => {
-    if (rfInstance) {
-      const flow = rfInstance.toObject();
-      localStorage.setItem(flowKey, JSON.stringify(flow));
-    }
-  }, [rfInstance]);
+
   const onDragOver = useCallback((event) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
+    event.dataTransfer.dropEffect = 'move';
   }, []);
-  const onNodeClick = (e, val) => {
-    setId(val.id);
-    setNodeName(val.data.label);
-  };
+  const onNodeClick = (e, val) =>{
+    setId(val.id)
+    setNodeName(val.data.label)
+  
+  }
 
   const onDrop = useCallback(
     (event) => {
       event.preventDefault();
-
-      const type = event.dataTransfer.getData("application/reactflow");
+      const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
+      const type = event.dataTransfer.getData('application/reactflow');
 
       // check if the dropped element is valid
-      if (typeof type === "undefined" || !type) {
+      if (typeof type === 'undefined' || !type) {
         return;
       }
 
@@ -110,45 +133,43 @@ const DnDFlow = () => {
         type,
         position,
         data: { label: `${type} node` },
-        sourcePosition: "right",
-        targetPosition: "left",
+        sourcePosition: 'right',
+        targetPosition: 'left',
+
       };
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance]
+    [reactFlowInstance],
   );
 
   return (
     <>
-      <div className="dndflow">
-        <ReactFlowProvider>
-          <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodeClick={(e, val) => onNodeClick(e, val)}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onInit={setReactFlowInstance}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              fitView
-            >
-              <Nav />
-              <Background />
-              <Controls />
-            </ReactFlow>
-          </div>
-          <Sidebar
-            nodeName={nodeName}
-            setNodeName={setNodeName}
-            onSave={onSave}
-          />
-        </ReactFlowProvider>
-      </div>
-    </>
+    <div className="dndflow">
+      <ReactFlowProvider>
+        <div className="reactflow-wrapper" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodeClick={(e,val) => onNodeClick(e, val)}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onInit={setReactFlowInstance}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            fitView
+          >
+            <Nav 
+            />
+            <Background />
+            <Controls />
+
+          </ReactFlow>
+        </div>
+        <Sidebar nodeName={nodeName} setNodeName={setNodeName} onSave={onSave} />
+      </ReactFlowProvider>
+    </div></>
   );
 };
 
