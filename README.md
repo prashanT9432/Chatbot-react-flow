@@ -1,8 +1,5 @@
-# React + Vite
+#Chatbot React Flow [live demo](https://chatbot-react-flow-nine.vercel.app/)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+This project uses react.js and react flow to create a straightforward React application. It shows how to use drag and drop nodes that have connectivity capabilities. It is possible to store the nodes' and their connections' states.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
